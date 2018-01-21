@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "31183007536",
+    "firebase_url": "https://egeza-6bd95.firebaseio.com",
+    "project_id": "egeza-6bd95",
+    "storage_bucket": "egeza-6bd95.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:31183007536:android:7cd277fe5b1e4126",
+        "android_client_info": {
+          "package_name": "com.kshem.parking"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "31183007536-7fs45evdmgrjiba2nedeqpib3ocfp13s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.kshem.parking",
+            "certificate_hash": "c71dacabcfaf4ace652bc88a60b842e75506218f"
+          }
+        },
+        {
+          "client_id": "31183007536-ef4af43juf670joqq1s3lf2vafnu25pm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADCeFVmF4-wUZ0Fzs4-6sCEatuIR9DdTQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "31183007536-ef4af43juf670joqq1s3lf2vafnu25pm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

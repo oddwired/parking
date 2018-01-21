@@ -21,7 +21,8 @@ public class SlotModel {
         slots = new ArrayList<>();
         try {
             for(int i = 0; i < data.length(); i++){
-                slots.add(data.getInt(i));
+                JSONObject jsonObject = data.getJSONObject(i);
+                slots.add(jsonObject.getInt("id"));
             }
         } catch (JSONException e) {
             e.printStackTrace();

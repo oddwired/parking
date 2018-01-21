@@ -3,6 +3,7 @@ package com.kshem.parking;
 import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.kshem.parking.models.LocationModel;
 import com.kshem.parking.models.SlotModel;
@@ -33,6 +34,7 @@ public class SlotData {
     private SlotListener listener;
     private OkHttpClient client;
     private boolean status = false;
+    private SlotModel slotModel;
 
     public SlotData(Activity activity){
         this.context = activity;
@@ -46,7 +48,7 @@ public class SlotData {
     public void getOccupiedSlots(LocationModel locationModel){
         String url_parameters = "/get_slots?id=" + locationModel.getId(); //TODO: Enter url parameters
         String url_request = BASE_URL + url_parameters;
-
+        Log.d("Location: slots url", url_request);
         final Request request = new Request.Builder().url(url_request).build();
 
         AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
@@ -61,11 +63,11 @@ public class SlotData {
                     if(status){
                         JSONArray jsonArray = new JSONArray(response.body().string());
 
-                        SlotModel slotModel = new SlotModel(jsonArray);
+                        slotModel = new SlotModel(jsonArray);
 
-                        listener.onSuccess(slotModel);
+
                     }else{
-                        listener.onFailure();
+
                     }
 
                 } catch (IOException | JSONException e) {
@@ -73,6 +75,17 @@ public class SlotData {
                 }
 
                 return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+
+                if(status){
+                    listener.onSuccess(slotModel);
+                }else{
+                    listener.onFailure();
+                }
             }
         };
 

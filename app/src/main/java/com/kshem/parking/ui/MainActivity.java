@@ -71,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private String car_plate;
     private String location_id;
     private int rate = 0;
+    private LocationModel locationModel;
 
     private SharedPreferences sp;
     private ProgressDialog pd;
@@ -147,67 +148,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         pd = new ProgressDialog(MainActivity.this);
         handler = new Handler();
 
-        apiRequest = new APIRequest(MainActivity.this);
-        apiRequest.setAccessTokenListener(new APIRequest.AccessTokenListener() {
-            @Override
-            public void onReceive(String accessToken, String expiry) {
-                Calendar calendar = Calendar.getInstance();
-                calendar.add(Calendar.SECOND, Integer.getInteger(expiry));
+        getAccessToken();
 
-                SharedPreferences.Editor editor = sp.edit();
-                editor.putString("access_token", accessToken);
-                editor.putString("expires", calendar.getTime().toString());
-                editor.apply();
-            }
-
-            @Override
-            public void onFailure() {
-                new AlertDialog.Builder(MainActivity.this)
-                        .setMessage("Please make sure you have data connection!")
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                apiRequest.fetchAccessToken();
-                            }
-                        }).setCancelable(false).show();
-            }
-        });
-
-        apiRequest.fetchAccessToken();
-
-        parkingLotData = new ParkingLotData(this);
-        parkingLotData.setListener(new ParkingLotData.NewDataListener() {
-            @Override
-            public void onReceive() {
-
-            }
-
-            @Override
-            public void onFailure() {
-                new AlertDialog.Builder(MainActivity.this).setMessage("Unable to fetch data")
-                        .setPositiveButton("Close", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        }).setCancelable(true).show();
-            }
-        });
-
-        parkingLotData.getParkingLots();
+        //getParkingLots();
 
         mDuration = new Duration();
-        sp = getSharedPreferences(getString(R.string.sp_name), Context.MODE_PRIVATE);
 
-        if(!sp.contains(Constants.CAR_PLATE)){
-            mDuration.addMinutes(DEFAULT_DURATION);
-        }else{
-            mDuration.addMinutes(sp.getInt(DURATION, DEFAULT_DURATION));
-            car_plate = sp.getString(CAR_PLATE, "");
-            location_id = sp.getString(LOCATION_ID, "");
-        }
-
+        initializeSharedPreferences();
 
         duration.setText(mDuration.getDuration());
 
@@ -261,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                pd.setMessage("Confirming availability of parking slots...");
+                /*pd.setMessage("Confirming availability of parking slots...");
                 pd.show();
                 SlotData slotData = new SlotData(MainActivity.this);
                 slotData.setListener(new SlotData.SlotListener() {
@@ -299,12 +246,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                         showProcessFailure();
                                     }
                                 });
+                                int amount = mDuration.getDurationInMinutes() * Integer.parseInt(locationModel.getRate());
+                                String access_token = sp.getString("access_token", "");
+                                String phone = inputPhone.getText().toString();
+                                apiRequest.STKPush(String.valueOf(amount), access_token, phone);
+
                             }
                         }
                     }
 
                     @Override
                     public void onFailure() {
+                        pd.dismiss();
                         new AlertDialog.Builder(MainActivity.this)
                                 .setMessage("Network connection error. Please try again!")
                                 .setCancelable(true)
@@ -316,8 +269,76 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 }).show();
                     }
                 });
+
+                slotData.getOccupiedSlots(locationModel);*/
+
             }
         });
+    }
+
+    private void initializeSharedPreferences(){
+        sp = getSharedPreferences(getString(R.string.sp_name), Context.MODE_PRIVATE);
+
+        if(!sp.contains(Constants.CAR_PLATE)){
+            mDuration.addMinutes(DEFAULT_DURATION);
+        }else{
+            mDuration.addMinutes(sp.getInt(DURATION, DEFAULT_DURATION));
+            car_plate = sp.getString(CAR_PLATE, "");
+            location_id = sp.getString(LOCATION_ID, "");
+        }
+    }
+
+    private void getParkingLots(){
+        parkingLotData = new ParkingLotData(this);
+        parkingLotData.setListener(new ParkingLotData.NewDataListener() {
+            @Override
+            public void onReceive() {
+
+            }
+
+            @Override
+            public void onFailure() {
+                new AlertDialog.Builder(MainActivity.this).setMessage("Unable to fetch data")
+                        .setPositiveButton("Close", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        }).setCancelable(true).show();
+            }
+        });
+
+        parkingLotData.getParkingLots();
+    }
+    private void getAccessToken(){
+        apiRequest = new APIRequest(MainActivity.this);
+        apiRequest.setAccessTokenListener(new APIRequest.AccessTokenListener() {
+            @Override
+            public void onReceive(String accessToken, String expiry) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.add(Calendar.SECOND, Integer.parseInt(expiry));
+
+                SharedPreferences.Editor editor = sp.edit();
+                editor.putString("access_token", accessToken);
+                editor.putString("expires", calendar.getTime().toString());
+                editor.apply();
+            }
+
+            @Override
+            public void onFailure() {
+                new AlertDialog.Builder(MainActivity.this)
+                        .setMessage("Please make sure you have data connection!")
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                apiRequest.fetchAccessToken();
+                            }
+                        }).setCancelable(false).show();
+            }
+        });
+
+        apiRequest.fetchAccessToken();
     }
 
     private void completeProcess(){
@@ -354,6 +375,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     this.rate = Integer.parseInt(rate);
 
                     LocationModel locationModel = new LocationModel(id, name, coordinates, slots, rate);
+                    this.locationModel = locationModel;
 
                     LatLng latLng = new LatLng(locationModel.getLatitude(), locationModel.getLongitude());
                     mMap.clear();

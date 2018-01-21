@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Base64;
+import android.util.Log;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -68,6 +70,7 @@ public class APIRequest {
 
     public void fetchAccessToken(){
         String appKeySecret = Config.CONSUMER_KEY + ":" + Config.CONSUMER_SECRET;
+        Log.d("API: apikey url", Config.TOKEN_URL);
         try {
             byte[] bytes = appKeySecret.getBytes("ISO-8859-1");
             String auth = Base64.encodeToString(bytes, Base64.NO_WRAP);
@@ -90,6 +93,7 @@ public class APIRequest {
                             JSONObject jsonObject = new JSONObject(response.body().string());
                             access_token = jsonObject.getString("access_token");
                             expires_in = jsonObject.getString("expires_in");
+
                         }else{
                             //TODO: Retry fetching the access key
                         }
@@ -105,6 +109,7 @@ public class APIRequest {
                 protected void onPostExecute(Void aVoid) {
                     super.onPostExecute(aVoid);
                     if(status){
+                        Log.d("API: apikey and expiry", access_token + " " + expires_in);
                         accessTokenListener.onReceive(access_token, expires_in);
                     }else{
                         accessTokenListener.onFailure();
@@ -134,19 +139,21 @@ public class APIRequest {
             requestParameters.put("PartyB",Config.BUSINESS_SHORT_CODE);
             requestParameters.put("PhoneNumber",this.phone);
             requestParameters.put("CallBackURL", Config.CALLBACKURL + response_parameters);
-            requestParameters.put("AccountReference", this.timestamp);
+            requestParameters.put("AccountReference", "parking");
             requestParameters.put("TransactionDesc", Config.TRANSACTION_DESC);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         RequestBody requestBody = RequestBody.create(JSON, requestParameters.toString());
-
+        Log.d("API: requestparam", requestParameters.toString());
         final Request request = new Request.Builder().addHeader("authorization", "Bearer "+ accessToken)
                 .addHeader("content-type", "application/json")
                 .post(requestBody)
                 .url(Config.STKPUSH_PROCESS_URL)
                 .build();
+
+        Log.d("API: STKpushrequest", JSON.toString());
 
         AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
             @Override
@@ -155,13 +162,15 @@ public class APIRequest {
                 try {
                     Response response = client.newCall(request).execute();
                     status = response.isSuccessful();
-
+                    JSONObject jsonObject = new JSONObject(response.body().string());
                     if(status){
-                        JSONObject jsonObject = new JSONObject(response.body().string());
+
 
                         merchant_request_id = jsonObject.getString("MerchantRequestID");
                         checkout_id = jsonObject.getString("CheckoutRequestID");
                         response_code = jsonObject.getString("ResponseCode");
+                    }else{
+                        Log.d("API: unsuccessfull" , jsonObject.toString());
                     }
                 } catch (JSONException | IOException e) {
                     e.printStackTrace();
@@ -175,7 +184,9 @@ public class APIRequest {
                 super.onPostExecute(aVoid);
                 if(status && Integer.parseInt(response_code) == 0){
                     requestListener.onSuccess(merchant_request_id);
+                    Log.d("API: STKreply merch", merchant_request_id);
                 }else{
+
                     requestListener.onFailure();
                 }
             }
