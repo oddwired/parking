@@ -18,7 +18,7 @@ public class Constants {
     public static int SUCCESS_RESULT_CODE = 0;
     public static int FAILED_RESULT_CODE = 1;
 
-    public static String BASE_URL = "https://26d12e50.ngrok.io"; //TODO: Input server url here
+    public static String BASE_URL = "<your server url>"; //TODO: Input server url here
 
     public static int TRANSACTION_STATUS_SUCCESS = 0;
     public static int TRANSACTION_STATUS_FAILURE = 1;
